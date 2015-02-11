@@ -17,7 +17,21 @@ class SendSelectionCommand(sublime_plugin.TextCommand):
     def send(selection):
         prog = settings.get('program')
 
-        if prog == "Terminal.app":
+#     let cmd = a:cmd      " for some reason it doesn't like "\025"
+#     let cmd = substitute(cmd, "\\", '\\\', 'g')
+#     let cmd = substitute(cmd, '"', '\\"', "g")
+#     let cmd = substitute(cmd, "'", "\\'", "g")
+# call system("osascript -e 'tell application \"R\" to cmd \"" .cmd. "\"'")
+
+        if prog == "R":
+            # Remove trailing newline
+            # selection = selection.rstrip('\n')
+            selection = SendSelectionCommand.escapeString(selection)
+
+            subprocess.call(['osascript', '-e',
+                'tell app "R" to cmd "' + selection])
+
+        elif prog == "Terminal.app":
             # Remove trailing newline
             selection = selection.rstrip('\n')
             # Split selection into lines
