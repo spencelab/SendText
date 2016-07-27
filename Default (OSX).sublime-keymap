@@ -1,3 +1,7 @@
 [
-{ "keys": ["super+enter"], "command": "send_selection" }
+//{ "keys": ["super+enter"], "command": "send_selection" },
+{ "keys": ["super+enter"], "command": "paste_selection_ipython_iterm" },	
+{ "keys": ["super+alt+enter"], "command": "run_current_file_interactive_ipython_iterm" },
+{ "keys": ["super+shift+alt+enter"], "command": "run_current_file_interactive_ipython_pylab_iterm" },
+{ "keys": ["super+alt+t"], "command": "open_enclosing_folder_iterm" }
 ]

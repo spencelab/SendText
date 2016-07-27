@@ -3,6 +3,7 @@ import sublime_plugin
 import subprocess
 import string
 import tempfile
+import os
 
 settings = {}
 
@@ -103,6 +104,74 @@ class SendSelectionCommand(sublime_plugin.TextCommand):
         self.send(selection)
 
 
+    def advanceCursor(self, region):
+        (row, col) = self.view.rowcol(region.begin())
+
+        # Make sure not to go past end of next line
+        nextline = self.view.line(self.view.text_point(row + 1, 0))
+        if nextline.size() < col:
+            loc = self.view.text_point(row + 1, nextline.size())
+        else:
+            loc = self.view.text_point(row + 1, col)
+
+        # Remove the old region and add the new one
+        self.view.sel().subtract(region)
+        self.view.sel().add(sublime.Region(loc, loc))
+
+class OpenEnclosingFolderItermCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+    	# All the escaping: Python single quote means you can 
+    	# use double quotes inside without escaping.
+    	# The argument to write text in the Applescript command
+    	# needs quotes because the path may have spaces.
+    	# To get Applescript to pass the double quote literal
+    	# to iTerm you must escape the backslash and quote in Python.
+    	# So subprocess gets "cd \"path\""
+        subprocess.call(['osascript', '-e', 'tell app "iTerm"',
+        '-e', 'tell current window to create tab with default profile',
+        '-e', 'set mysession to current session of current window',
+        '-e', 'tell mysession to write text "cd \\\"' + os.path.dirname(self.view.file_name()) + '\\\""',
+        '-e', 'activate',
+        '-e', 'end tell'])
+
+class RunCurrentFileInteractiveIpythonItermCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        subprocess.call(['osascript', '-e', 'tell app "iTerm"',
+        '-e', 'set mysession to current session of current window',
+        '-e', 'tell mysession to write text "run -i \\\"' + self.view.file_name() + '\\\""',
+        '-e', 'activate',
+        '-e', 'end tell'])
+
+class RunCurrentFileInteractiveIpythonPylabItermCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        subprocess.call(['osascript', '-e', 'tell app "iTerm"',
+        '-e', 'set mysession to current session of current window',
+        '-e', 'tell mysession to write text "ipython --pylab"',
+        '-e', 'tell mysession to write text "run -i \\\"' + self.view.file_name() + '\\\""',
+        '-e', 'activate',
+        '-e', 'end tell'])
+
+class PasteSelectionIpythonItermCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        # get selection
+        selection = ""
+        for region in self.view.sel():
+            if region.empty():
+                selection += self.view.substr(self.view.line(region)) + "\n"
+                self.advanceCursor(region)
+            else:
+                selection += self.view.substr(region) + "\n"
+        # only proceed if selection is not empty
+        if(selection == "" or selection == "\n"):
+            return
+        #sublime.set_clipboard(self.view.sel())
+        sublime.set_clipboard(selection)
+        subprocess.call(['osascript', '-e', 'tell app "iTerm"',
+        '-e', 'set mysession to current session of current window',
+        '-e', 'tell mysession to write text "paste"',
+        '-e', 'activate',
+        '-e', 'end tell'])
+        
     def advanceCursor(self, region):
         (row, col) = self.view.rowcol(region.begin())
 
