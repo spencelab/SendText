@@ -29,7 +29,7 @@ class SendSelectionCommand(sublime_plugin.TextCommand):
             selection = SendSelectionCommand.escapeString(selection)
 
             subprocess.call(['osascript', '-e',
-                'tell app "R" to cmd "' + selection])
+                'tell app "R" to cmd "' + selection, '-e', 'tell app "R" to activate'])
 
         elif prog == "Terminal.app":
             # Remove trailing newline
@@ -53,8 +53,9 @@ class SendSelectionCommand(sublime_plugin.TextCommand):
             selection = SendSelectionCommand.escapeString(selection)
 
             subprocess.call(['osascript', '-e', 'tell app "iTerm"',
-                '-e', 'set mysession to current session of current terminal',
+                '-e', 'set mysession to current session of current window',
                 '-e', 'tell mysession to write text "' + selection + '"',
+                '-e', 'activate',
                 '-e', 'end tell'])
 
         elif prog == "tmux":
@@ -81,7 +82,6 @@ class SendSelectionCommand(sublime_plugin.TextCommand):
                     with open(tmp.name, 'w') as file:
                         file.write(selection)
                         subprocess.call([progpath, '-X', 'stuff', ". %s\n" % (file.name)])
-
 
     def run(self, edit):
         global settings
